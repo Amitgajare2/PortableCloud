@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portable Cloud</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="cloud-icon">☁</span>
+                    Portable Cloud
+                </h1>
+                <div class="breadcrumb">
+                    {% if current %}
+                        <span class="breadcrumb-item">📁 {{ current.replace('/', ' / ') }}</span>
+                    {% else %}
+                        <span class="breadcrumb-item">📁 Home</span>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="upload-section glass">
+                <div class="upload-header">
+                    <h2>Upload Files</h2>
+                </div>
+                
+                <div class="upload-actions">
+                    <form id="uploadForm" class="upload-form">
+                        <div class="file-input-wrapper">
+                            <input type="file" id="fileInput" multiple required>
+                            <input type="hidden" id="folder" value="{{ current }}">
+                            <label for="fileInput" class="file-input-label">
+                                <span class="upload-icon">📤</span>
+                                <span class="upload-text">Choose Files</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress">
+                        <div id="progressBar" class="progress-bar"></div>
+                    </div>
+                    <span id="status" class="status-text"></span>
+                </div>
+            </section>
+
+            <section class="files-section">
+                <!-- Search Section -->
+                <div class="search-section glass">
+                    <form class="search-form" method="GET">
+                        <div class="search-inputs">
+                            <div class="search-input-group">
+                                <input type="text" 
+                                       name="search" 
+                                       placeholder="Search files..." 
+                                       value="{{ search_query or '' }}"
+                                       class="search-input">
+                                <button type="submit" class="search-btn">
+                                    <span>🔍</span>
+                                </button>
+                            </div>
+                            
+                            <select name="type" class="type-filter">
+                                <option value="all" {% if file_type_filter == 'all' %}selected{% endif %}>All Types</option>
+                                <option value="folder" {% if file_type_filter == 'folder' %}selected{% endif %}>📁 Folders</option>
+                                <option value="image" {% if file_type_filter == 'image' %}selected{% endif %}>🖼️ Images</option>
+                                <option value="video" {% if file_type_filter == 'video' %}selected{% endif %}>🎥 Videos</option>
+                                <option value="audio" {% if file_type_filter == 'audio' %}selected{% endif %}>🎵 Audio</option>
+                                <option value="file" {% if file_type_filter == 'file' %}selected{% endif %}>📄 Files</option>
+                            </select>
+                        </div>
+                        
+                        {% if search_query or file_type_filter != 'all' %}
+                        <div class="search-actions">
+                            <a href="{% if current %}/folder/{{ current }}{% else %}/{% endif %}" class="clear-search-btn">
+                                <span>✕</span>
+                                Clear Search
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="files-header">
+                    <div class="files-title">
+                        <h2>
+                            {% if search_query or file_type_filter != 'all' %}
+                                Search Results
+                            {% else %}
+                                Files & Folders
+                            {% endif %}
+                        </h2>
+                        <span class="item-count">
+                            {% if pagination %}
+                                {% if search_query or file_type_filter != 'all' %}
+                                    {{ pagination.total }} results (Page {{ pagination.page }} of {{ pagination.total_pages }})
+                                {% else %}
+                                    {{ pagination.total }} items (Page {{ pagination.page }} of {{ pagination.total_pages }})
+                                {% endif %}
+                            {% else %}
+                                {{ items|length }} items
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if current %}
+                    <a class="back-btn" href="{% if '/' in current %}/folder/{{ current.rsplit('/',1)[0] }}{% else %}/{% endif %}">
+                        <span class="back-icon">←</span>
+                        Back
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="grid" id="fileGrid">
+                    {% for item in items %}
+                    <div class="card glass" data-type="{{ item.type }}" {% if item.is_new %}data-new="true"{% endif %}>
+                        {% if item.is_new %}
+                        <div class="new-badge">NEW</div>
+                        {% endif %}
+                        {% if item.is_dir %}
+                            <a href="{% if current %}/folder/{{ current }}/{{ item.name }}{% else %}/folder/{{ item.name }}{% endif %}" class="card-link">
+                                <div class="card-content">
+                                    <div class="folder-icon">📁</div>
+                                    <div class="card-info">
+                                        <p class="file-name">{{ item.name }}</p>
+                                        <span class="file-type">Folder</span>
+                                    </div>
+                                </div>
+                            </a>
+                        {% elif item.type == "image" %}
+                            <div class="card-content">
+                                <div class="media-container">
+                                    <img src="/files/{% if current %}{{ current }}/{{ item.name }}{% else %}{{ item.name }}{% endif %}" class="media-preview" alt="{{ item.name }}" onclick="openModal(this.src, 'image')">
+                                    <div class="media-overlay">
+                                        <button class="preview-btn" onclick="openModal('/files/{% if current %}{{ current }}/{{ item.name }}{% else %}{{ item.name }}{% endif %}', 'image')">👁</button>
+                                    </div>
+                                </div>
+                                <div class="card-info">
+                                    <p class="file-name">{{ item.name }}</p>
+                                    <span class="file-type">Image</span>
+                                </div>
+                                <div class="card-actions">
+                                    <a href="/files/{% if current %}{{ current }}/{{ item.name }}{% else %}{{ item.name }}{% endif %}" download class="action-btn download-btn" title="Download">
+                                        <span>⬇</span>
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                        {% elif item.type == "video" %}
+                            <div class="card-content">
+                                <div class="media-container">
+                                    <video src="/files/{% if current %}{{ current }}/{{ item.name }}{% else %}{{ item.name }}{% endif %}" class="media-preview" onclick="openModal(this.src, 'video')"></video>
+                                    <div class="media-overlay">
+                                        <button class="preview-btn play-btn" onclick="openModal('/files/{% if current %}{{ current }}/{{ item.name }}{% else %}{{ item.name }}{% endif %}', 'video')">▶</button>
+                                    </div>
+                                </div>
+                                <div class="card-info">
+                                    <p class="file-name">{{ item.name }}</p>
+                                    <span class="file-type">Video</span>
+                                </div>
+                                <div class="card-actions">
+                                    <a href="/files/{% if current %}{{ current }}/{{ item.name }}{% else %}{{ item.name }}{% endif %}" download class="action-btn download-btn" title="Download">
+                                        <span>⬇</span>
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="card-content">
+                                <div class="file-icon-container">
+                                    <div class="file-icon">📄</div>
+                                </div>
+                                <div class="card-info">
+                                    <p class="file-name">{{ item.name }}</p>
+                                    <span class="file-type">File</span>
+                                </div>
+                                <div class="card-actions">
+                                    <a href="/files/{% if current %}{{ current }}/{{ item.name }}{% else %}{{ item.name }}{% endif %}" download class="action-btn download-btn" title="Download">
+                                        <span>⬇</span>
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not items %}
+                    <div class="empty-state">
+                        {% if search_query or file_type_filter != 'all' %}
+                            <div class="empty-icon">🔍</div>
+                            <h3>No results found</h3>
+                            <p>
+                                {% if search_query and file_type_filter != 'all' %}
+                                    No {{ file_type_filter }}s found matching "{{ search_query }}"
+                                {% elif search_query %}
+                                    No files found matching "{{ search_query }}"
+                                {% else %}
+                                    No {{ file_type_filter }}s found in this folder
+                                {% endif %}
+                            </p>
+                            <a href="{% if current %}/folder/{{ current }}{% else %}/{% endif %}" class="clear-search-btn" style="margin-top: 1rem;">
+                                <span>✕</span>
+                                Clear Search
+                            </a>
+                        {% else %}
+                            <div class="empty-icon">📂</div>
+                            <h3>No files yet</h3>
+                            <p>Upload some files or create folders to get started</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Pagination -->
+                {% if pagination and pagination.total_pages > 1 %}
+                <div class="pagination-container">
+                    <nav class="pagination">
+                        <!-- Previous Button -->
+                        {% if pagination.has_prev %}
+                            <a href="?page={{ pagination.prev_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if file_type_filter != 'all' %}&type={{ file_type_filter }}{% endif %}" class="pagination-btn pagination-prev">
+                                <span>←</span>
+                                Previous
+                            </a>
+                        {% else %}
+                            <span class="pagination-btn pagination-prev disabled">
+                                <span>←</span>
+                                Previous
+                            </span>
+                        {% endif %}
+
+                        <!-- Page Numbers -->
+                        <div class="pagination-numbers">
+                            {% for page_num in pagination.page_numbers %}
+                                {% if page_num == '...' %}
+                                    <span class="pagination-ellipsis">...</span>
+                                {% elif page_num == pagination.page %}
+                                    <span class="pagination-btn pagination-current">{{ page_num }}</span>
+                                {% else %}
+                                    <a href="?page={{ page_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if file_type_filter != 'all' %}&type={{ file_type_filter }}{% endif %}" class="pagination-btn">{{ page_num }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Next Button -->
+                        {% if pagination.has_next %}
+                            <a href="?page={{ pagination.next_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if file_type_filter != 'all' %}&type={{ file_type_filter }}{% endif %}" class="pagination-btn pagination-next">
+                                Next
+                                <span>→</span>
+                            </a>
+                        {% else %}
+                            <span class="pagination-btn pagination-next disabled">
+                                Next
+                                <span>→</span>
+                            </span>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+
+    <!-- PREVIEW MODAL -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
