@@ -211,3 +211,52 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+// Server info toggle functionality
+window.toggleServerInfo = function() {
+    const serverAddresses = document.getElementById('serverAddresses');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    if (serverAddresses.style.display === 'none') {
+        serverAddresses.style.display = 'block';
+        toggleIcon.textContent = '▼';
+    } else {
+        serverAddresses.style.display = 'none';
+        toggleIcon.textContent = '▶';
+    }
+};
+
+// Copy to clipboard functionality
+window.copyToClipboard = function(text, button) {
+    navigator.clipboard.writeText(text).then(() => {
+        const copyText = button.querySelector('.copy-text');
+        const originalText = copyText.textContent;
+        
+        copyText.textContent = 'Copied!';
+        button.style.background = '#4CAF50';
+        
+        setTimeout(() => {
+            copyText.textContent = originalText;
+            button.style.background = '';
+        }, 2000);
+    }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        const copyText = button.querySelector('.copy-text');
+        const originalText = copyText.textContent;
+        
+        copyText.textContent = 'Copied!';
+        button.style.background = '#4CAF50';
+        
+        setTimeout(() => {
+            copyText.textContent = originalText;
+            button.style.background = '';
+        }, 2000);
+    });
+};
