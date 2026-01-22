@@ -941,3 +941,159 @@ height: 80vh;
 .modal.show .modal-content {
     animation: modalFadeIn 0.3s ease-out;
 }
+/* Server Info Section */
+.server-info {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.server-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+
+.server-info-header h3 {
+    color: var(--text-white);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.toggle-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-white);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.server-addresses {
+    display: block;
+}
+
+.server-description {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.address-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.address-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+}
+
+.address-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.address-url {
+    flex: 1;
+    color: var(--text-white);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    word-break: break-all;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.copy-icon {
+    font-size: 0.9rem;
+}
+
+.server-note {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem 1rem;
+    color: #ffd60a;
+}
+
+.server-note p {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+/* Responsive adjustments for server info */
+@media (max-width: 768px) {
+    .server-info {
+        padding: 1rem;
+    }
+    
+    .server-info-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .address-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .copy-btn {
+        align-self: flex-end;
+        width: fit-content;
+    }
+}
+
+@media (max-width: 480px) {
+    .address-url {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .copy-btn {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .server-note p {
+        font-size: 0.8rem;
+    }
+}
