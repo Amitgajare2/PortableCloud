@@ -5,6 +5,7 @@ import mimetypes
 import time
 from werkzeug.utils import secure_filename
 import sys
+import socket
 
 if getattr(sys, 'frozen', False):
     BASE_DIR = os.path.dirname(sys.executable)
@@ -23,6 +24,66 @@ app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500MB max file size
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg")
 VIDEO_EXT = (".mp4", ".webm", ".ogg", ".avi", ".mov", ".mkv")
 AUDIO_EXT = (".mp3", ".wav", ".ogg", ".m4a", ".flac")
+
+def get_server_addresses(port=5000):
+    """Get all available IP addresses for the server"""
+    addresses = []
+    
+    # Add localhost
+    addresses.append(f"http://127.0.0.1:{port}")
+    
+    try:
+        # Try to get the local IP address
+        # Connect to a remote address to determine the local IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        
+        if local_ip and local_ip != '127.0.0.1':
+            addresses.append(f"http://{local_ip}:{port}")
+    except:
+        # Fallback method
+        try:
+            hostname = socket.gethostname()
+            local_ip = socket.gethostbyname(hostname)
+            if local_ip != '127.0.0.1':
+                addresses.append(f"http://{local_ip}:{port}")
+        except:
+            pass
+    
+    # Try to get all local IPs (Windows/Linux compatible)
+    try:
+        import subprocess
+        import platform
+        
+        if platform.system() == "Windows":
+            # Windows ipconfig command
+            result = subprocess.run(['ipconfig'], capture_output=True, text=True)
+            lines = result.stdout.split('\n')
+            for line in lines:
+                if 'IPv4 Address' in line or 'IP Address' in line:
+                    ip = line.split(':')[-1].strip()
+                    if ip and not ip.startswith('127.') and not ip.startswith('169.254'):
+                        addr = f"http://{ip}:{port}"
+                        if addr not in addresses:
+                            addresses.append(addr)
+        else:
+            # Linux/Mac ifconfig or ip command
+            try:
+                result = subprocess.run(['hostname', '-I'], capture_output=True, text=True)
+                ips = result.stdout.strip().split()
+                for ip in ips:
+                    if ip and not ip.startswith('127.') and not ip.startswith('169.254'):
+                        addr = f"http://{ip}:{port}"
+                        if addr not in addresses:
+                            addresses.append(addr)
+            except:
+                pass
+    except:
+        pass
+    
+    return addresses
 
 def file_type(name):
     """Determine file type based on extension"""
@@ -170,7 +231,8 @@ def index(subpath=""):
             current=subpath,
             pagination=pagination,
             search_query=search_query,
-            file_type_filter=file_type_filter
+            file_type_filter=file_type_filter,
+            server_addresses=get_server_addresses()
         )
     except Exception as e:
         print(f"Error in index route: {e}")
