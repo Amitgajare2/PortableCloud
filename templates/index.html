@@ -26,6 +26,33 @@
             </div>
         </header>
 
+        <!-- Server Addresses Section -->
+        <section class="server-info glass">
+            <div class="server-info-header">
+                <h3>🌐 Server Access URLs</h3>
+                <button class="toggle-btn" onclick="toggleServerInfo()">
+                    <span id="toggleIcon">▼</span>
+                </button>
+            </div>
+            <div class="server-addresses" id="serverAddresses">
+                <p class="server-description">Access your Portable Cloud from any device on the network:</p>
+                <div class="address-list">
+                    {% for address in server_addresses %}
+                    <div class="address-item">
+                        <span class="address-url">{{ address }}</span>
+                        <button class="copy-btn" onclick="copyToClipboard('{{ address }}', this)" title="Copy to clipboard">
+                            <span class="copy-icon">📋</span>
+                            <span class="copy-text">Copy</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="server-note">
+                    <p><strong>Note:</strong> Make sure devices are on the same network to access these URLs.</p>
+                </div>
+            </div>
+        </section>
+
         <main class="main-content">
             <section class="upload-section glass">
                 <div class="upload-header">
