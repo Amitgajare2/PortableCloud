@@ -81,6 +81,12 @@ data/uploads/
 
 ---
 
+## Gen EXE 
+```
+pyinstaller --onefile --noconsole --add-data "templates;templates" --add-data "static;static" --name PortableCloud server.py
+```
+---
+
 ## 🔐 Privacy
 
 * No accounts
