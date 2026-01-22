@@ -81,7 +81,6 @@ def list_items(path, search_query=None, file_type_filter=None):
             if not is_dir:
                 item_data["size"] = get_file_size(full_path)
             
-            # Apply search filters
             if search_query:
                 search_query_lower = search_query.lower()
                 if search_query_lower not in item_name.lower():
@@ -95,7 +94,7 @@ def list_items(path, search_query=None, file_type_filter=None):
             
             items_with_time.append(item_data)
         
-        # Sort by modification time (newest first), then by name for items with same time
+        # Sort by modification time (newest first) then by name for items with same time
         items_with_time.sort(key=lambda x: (-x["mod_time"], x["name"].lower()))
         
         # Remove mod_time from the final items list but keep is_new
@@ -117,18 +116,18 @@ def index(subpath=""):
     try:
         path = os.path.join(UPLOAD_FOLDER, subpath)
         
-        # Security check - ensure path is within upload folder
+        # Security check ensure path is within upload folder
         if not os.path.abspath(path).startswith(os.path.abspath(UPLOAD_FOLDER)):
             return "Access denied", 403
             
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
             
-        # Get search parameters
+        # search
         search_query = request.args.get('search', '').strip()
         file_type_filter = request.args.get('type', 'all')
         
-        # Get pagination parameters
+        # pagination
         page = request.args.get('page', 1, type=int)
         per_page = 6  # Items per page
         
@@ -136,7 +135,7 @@ def index(subpath=""):
         total_items = len(all_items)
         
         # Calculate pagination
-        total_pages = (total_items + per_page - 1) // per_page  # Ceiling division
+        total_pages = (total_items + per_page - 1) // per_page  
         start_idx = (page - 1) * per_page
         end_idx = start_idx + per_page
         items = all_items[start_idx:end_idx]
@@ -187,12 +186,10 @@ def upload():
         if not file or file.filename == "":
             return "No file selected", 400
             
-        # Secure the filename
         filename = secure_filename(file.filename)
         if not filename:
             return "Invalid filename", 400
             
-        # Create target directory
         target_dir = os.path.join(UPLOAD_FOLDER, folder)
         os.makedirs(target_dir, exist_ok=True)
         
@@ -225,7 +222,6 @@ def delete():
             
         full_path = os.path.join(UPLOAD_FOLDER, path)
         
-        # Security check
         if not os.path.abspath(full_path).startswith(os.path.abspath(UPLOAD_FOLDER)):
             return "Access denied", 403
             
@@ -247,7 +243,6 @@ def delete():
 def files(filename):
     """Serve uploaded files"""
     try:
-        # Security check
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         if not os.path.abspath(file_path).startswith(os.path.abspath(UPLOAD_FOLDER)):
             return "Access denied", 403
@@ -255,7 +250,7 @@ def files(filename):
         if not os.path.exists(file_path):
             return "File not found", 404
             
-        # Get the directory and filename
+        # Get directory and filename
         directory = os.path.dirname(file_path)
         basename = os.path.basename(file_path)
         
